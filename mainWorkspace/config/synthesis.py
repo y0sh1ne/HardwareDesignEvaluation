@@ -5,8 +5,11 @@ class Host:
         self.username: str = ""
         self.password: str = ""
 
+class SynthesisConfig:
+    def __init__(self):
+        self.is_enable:bool = True
+        self.is_remote:bool = True
+        self.synopsys_host: Host = Host()
+        self.synthesis_path: Path = Path("xxxx/synopsysWorkspace/synthesis")
 
-is_enable:bool = True
-is_remote:bool = True
-synopsys_host: Host = Host()
-synthesis_path: Path = Path("xxxx/synopsysWorkspace/synthesis")
+config = SynthesisConfig()

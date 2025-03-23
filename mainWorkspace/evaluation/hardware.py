@@ -1,4 +1,4 @@
-from model import DesignDut, HardwarePerformance, DesignName
+from .model import DesignDut, HardwarePerformance, DesignName
 from paramiko import SFTPClient
 from pathlib import Path
 

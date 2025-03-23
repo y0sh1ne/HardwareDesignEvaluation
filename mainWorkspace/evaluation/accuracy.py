@@ -1,4 +1,4 @@
-from model import DesignDut, AccuracyPerformance
+from .model import DesignDut, AccuracyPerformance
 from cocotb.triggers import Timer
 from decimal import Decimal
 
