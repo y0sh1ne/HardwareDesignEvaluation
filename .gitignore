@@ -1,3 +1,5 @@
 *.pyi
 test/
 *pycache*
+mainWorkspace/sim_build/
+mainWorkspace/performance.json
