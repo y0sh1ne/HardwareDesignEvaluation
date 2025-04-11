@@ -22,31 +22,34 @@ HardwareDesignEvaluation is a python project for calculate the metric of hardwar
 ├── README.md
 ├── mainWorkspace
 │   ├── performance.json       # The performance metric of design
-|   ├── performanceUpdate.py   # The main file to run
+│   ├── performanceUpdate.py   # The main file to run
 │   ├── README.md
 │   ├── requirements.txt
-|   ├── config                  # config files
-|   |   ├── ...
+│   ├── config                  # config files
+│   │   ├── ...
+│   │
 │   ├── evaluation
-|   |   ├── ...
-│   ├── verilogDesigns          # Your design file (verilog)
-|   |   ├── MY_DESIGN.v
-|   |   ├── ...
+│   │   ├── ...
+│   │
+│   ├── verilogDesigns
+│       ├── MY_DESIGN1           # Your design file (verilog)
+│           ├── MY_DESIGN.v
+│           ├── ...
+│
 ├── synopsysWorkspace
-│   ├── README.md               # How to use synopsysWorkspace
-│   ├── rtl_design          
-|   |   ├── MY_DESIGN.v         # Your design file (verilog)
-|   |   ├── ...
-|   ├── synthesis               # run dc_shell here
-|   |   ├── sdc
-|   |   |   ├── main.sdc        # the sdc file
-|   |   ├── tcl
-|   |   |   ├── main.tcl        # the tcl file which really works
-|   |   |   ├── MY_DESIGN.tcl   # tcl to define the DESIGN_NAME and call the main.tcl
-|   |   |   ├── ...
-|   |   ├── MY_DESIGN           # the directory to store the synthesis result
-|   |   |   ├── xxx.log
-|   |   |   ├── ...
+    ├── main.tcl                # the tcl file to run synthesis
+    ├── main.sdc                # the sdc file
+    ├── MY_DESIGN1
+    │   ├── rtl_design          
+    │   │   ├── MY_DESIGN.v
+    │   │   ├── ...
+    │   │
+    │   ├── results             # the directory to store the synthesis result
+    │       ├── xxx.log
+    │       ├── ...
+    │
+    ├── MY_DESIGN2
+    ├── ...
 
 ```
 
@@ -56,26 +59,20 @@ The guide will be introduced under the assumption that your Synopsys is installe
 
 ### 1. synopsysWorkspace
 - Download the synopsysWorkspace directory on your remote server.
-- Put your design file in `rtl_design` directory. Make sure the design file is named as `MY_DESIGN.v` and the module name is `MY_DESIGN`.
-- Create a tcl file named `MY_DESIGN.tcl` in `synopsysWorkspce/synthesis/tcl` directory. The content of `MY_DESIGN.tcl` should be like:
-    ```tcl
-    set ::CURRENT_DESIGN "MY_DESIGN"
-    source tcl/main.tcl
-    ```
-- Modify the parameters like library and path in file `synopsysWorkspace/synthesis/tclmain.tcl` according to your environment.
-- Run the following command to start synthesis:
-    ```bash
-    cd synopsysWorkspace/synthesis
-    dc_shell -f tcl/MY_DESIGN.tcl
-    ```
-- After the synthesis is done, you can find the synthesis result in `synopsysWorkspace/synthesis/MY_DESIGN` directory.
 
 ### 2. mainWorkspace
-- Download the mainWorkspace directory on your local server.
-- Modify the parameters in `mainWorkspace/config` according to your environment.
-- Define your structure of `DesignDut` and `Performance` in `mainWorkspace/evaluation/model.py`.
-    - `DesignDut` is the structure of your design. A DesignDut for Multiplier is defined in `mainWorkspace/evaluation/model.py` as an example.
-    - `Performance` is the structure of the performance metric of your design. A Performance for Multiplier is defined in `mainWorkspace/evaluation/model.py` as an example.
-- Write your evaluation function in `mainWorkspace/evaluation` directory. `mainWorkspace/evaluation/accuracy.py` is an example.
-- Run `mainWorkspace/performanceUpdate.py`.
+- **Install**: Download the mainWorkspace directory on your local server.
+- **Config**: Modify the parameters in `mainWorkspace/config` according to your environment.
+  - Give the design name (for example, `MY_DESIGN1`) in `mainWorkspace/config/design.py`.
+  - If you want to use the synopsys, modify the parameters in `mainWorkspace/config/synopsys.python` according to your environment.
+- **Write Your Verilog**: Make directory in `mainWorkspace/verilogDesigns` and put your design file in it. The directory name, main verilog file name and the top module name should be the same. 
+    > For example, if your design is `MY_DESIGN1.v`, the directory name should be `MY_DESIGN1` and the top module name in `MY_DESIGN1.v` should be `MY_DESIGN1`.
+- **Define your Metric Function**:
+  - create a directory in `mainWorkspace/evaluation` and name it as your design name (for example, `MY_DESIGN1`).
+  - Create `model.py`, `__init__.py`, `{metricName}.py`.
+    - `model.py` is the file to define your design structure and performance metric structure.
+    - define the function with type `Callable[[MyDesin], Awaitable[Any]]` to calculate metric in `{metricName}.py`.
+    - define a evaluation_function_list of the functions in `{metricName}.py`s in `__init__.py`, use loop to call the functions in `mainWorkspace/performanceUpdate.py`.
+- **Get the Result** Run `mainWorkspace/performanceUpdate.py`.
 
+> `mainWorkspace/evaluation/approximateMultiplier` is an example of how to define the metric functions and Design Structures.

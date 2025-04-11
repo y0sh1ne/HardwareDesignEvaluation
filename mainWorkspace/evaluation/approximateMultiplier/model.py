@@ -2,6 +2,7 @@ from typing import Protocol, TypedDict
 from cocotb.handle import ModifiableObject, NonHierarchyObject
 from cocotb.triggers import Timer
 from decimal import Decimal
+from ..model import DesignName, HardwarePerformance
 
 # Define the design interface
 # The shown interface is an example for a multiplier, `a` and `b` are the inputs and `y` is the output
@@ -28,15 +29,8 @@ class AccuracyPerformance(TypedDict):
     NMED:float
     MRED:float
 
-class HardwarePerformance(TypedDict):
-    area: float
-    delay: float
-    power: float
-    PDAP: float
-
 class Performance(TypedDict):
     accuracy: AccuracyPerformance
     hardware: HardwarePerformance
 
-type DesignName = str
 type AllPerformance = dict[DesignName,Performance]
