@@ -4,24 +4,15 @@ import config
 import cocotb
 from cocotb.runner import get_runner, Verilog, VHDL
 from typing import Union
-from paramiko import SFTPClient
 from pathlib import Path
-from evaluation.model import DesignDut, Performance, AllPerformance
-
+from evaluation.hardware import get_hardware_performance
+from evaluation.approximateMultiplier.model import Multiplier, MultiplierDut, Performance, AllPerformance
 
 # region get Parameters
-SYNTHESIS_SFTP: SFTPClient | None = None
-if config.synthesis.is_remote:
-    import paramiko
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    host = config.synthesis.synopsys_host
-    client.connect(hostname=host.hostname, username=host.username, password=host.password)
-    SYNTHESIS_SFTP = client.open_sftp() # type: ignore
 DESIGN_NAME             = config.design.name
-DESIGN_SOURCES_PATH     = config.design.source_path if config.design.source_path else Path(__file__).resolve().parent/"verilogDesigns"
+DESIGN_SOURCES_DIR     = config.design.source_path if config.design.source_path else Path(__file__).resolve().parent/"verilogDesigns"
 PERFORMANCE_FILE_PATH   = Path(__file__).resolve().parent/"performance.json"
-SYNTHESIS_PATH          = config.synthesis.synthesis_dir
+SYNTHESIS_DIR          = config.synthesis.synthesis_dir
 
 
 CALCULATE_IMAGE         = False
@@ -30,7 +21,7 @@ IMAGES_PATH             = Path(__file__).resolve().parent/"images"
 
 
 @cocotb.test() # type: ignore
-async def get_design_performance(dut: DesignDut):
+async def get_design_performance(dut: MultiplierDut):
     with open(PERFORMANCE_FILE_PATH,"r") as f:
         all_performance: AllPerformance = json.loads(f.read())
     if DESIGN_NAME not in all_performance:
@@ -50,13 +41,13 @@ async def get_design_performance(dut: DesignDut):
 
     # Get hardware performance, include Area, Delay, Power and PDAP
     if config.synthesis.is_enable:
-        from evaluation.hardware import get_hardware_performance
-        performance["hardware"] = await get_hardware_performance(dut, DESIGN_NAME, SYNTHESIS_PATH, SYNTHESIS_SFTP)
+        performance["hardware"] = await get_hardware_performance(DESIGN_NAME, DESIGN_SOURCES_DIR, SYNTHESIS_DIR, config.synthesis.is_remote, config.synthesis.synopsys_host.hostname, config.synthesis.synopsys_host.username, config.synthesis.synopsys_host.password)
 
     # Run custom evaluation functions
-    from evaluation import evaluation_functions
+    from evaluation.approximateMultiplier import evaluation_functions
+    multiplier = Multiplier(dut)
     for metric_name, get_metric in evaluation_functions.items():
-        performance[metric_name] = await get_metric(dut)
+        performance[metric_name] = await get_metric(multiplier)
 
     # Write performance to file
     with open(PERFORMANCE_FILE_PATH, "w") as f:
@@ -67,7 +58,7 @@ async def get_design_performance(dut: DesignDut):
 def run():
     hdl_toplevel_lang = os.getenv("HDL_TOPLEVEL_LANG", "verilog")
     sim = os.getenv("SIM", "verilator")
-    verilog_sources = [DESIGN_SOURCES_PATH / f"{DESIGN_NAME}.v"]
+    verilog_sources = [DESIGN_SOURCES_DIR / DESIGN_NAME / f"{DESIGN_NAME}.v"]
     build_test_args:list[Union[str, VHDL, Verilog]] = []
 
     runner = get_runner(sim)
@@ -76,7 +67,7 @@ def run():
         hdl_toplevel=DESIGN_NAME,
         always=True,
         build_args=build_test_args,
-        includes=[DESIGN_SOURCES_PATH],
+        includes=[DESIGN_SOURCES_DIR/DESIGN_NAME],
         clean=True,
     )
     runner.test(
