@@ -21,7 +21,7 @@ if config.synthesis.is_remote:
 DESIGN_NAME             = config.design.name
 DESIGN_SOURCES_PATH     = config.design.source_path if config.design.source_path else Path(__file__).resolve().parent/"verilogDesigns"
 PERFORMANCE_FILE_PATH   = Path(__file__).resolve().parent/"performance.json"
-SYNTHESIS_PATH          = config.synthesis.synthesis_path
+SYNTHESIS_PATH          = config.synthesis.synthesis_dir
 
 
 CALCULATE_IMAGE         = False

@@ -10,6 +10,6 @@ class SynthesisConfig:
         self.is_enable:bool = True
         self.is_remote:bool = True
         self.synopsys_host: Host = Host()
-        self.synthesis_path: Path = Path("xxxx/synopsysWorkspace/synthesis")
+        self.synthesis_dir: Path = Path("xxxx/synopsysWorkspace/synthesis")
 
 config = SynthesisConfig()
